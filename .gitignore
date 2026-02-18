@@ -1,0 +1,7 @@
+.env
+seen_posts.json
+notify.log
+notify.error.log
+__pycache__/
+.pytest_cache/
+*.pyc

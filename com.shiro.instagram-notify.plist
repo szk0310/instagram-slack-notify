@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.shiro.instagram-notify</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/shiro/instagram-slack-notify/notify.py</string>
+    </array>
+    <!-- 毎時0分に実行 -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict><key>Minute</key><integer>0</integer></dict>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/Users/shiro/instagram-slack-notify/notify.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/shiro/instagram-slack-notify/notify.error.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/shiro/instagram-slack-notify</string>
+</dict>
+</plist>
