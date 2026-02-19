@@ -1,0 +1,36 @@
+name: Instagram → Slack 通知
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 毎時0分 (UTC) に実行
+  workflow_dispatch:       # 手動実行も可能
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: seen_posts.json をキャッシュから復元
+        uses: actions/cache@v4
+        with:
+          path: seen_posts.json
+          key: seen-posts-${{ github.run_id }}
+          restore-keys: |
+            seen-posts-
+
+      - name: Python をセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: 依存パッケージをインストール
+        run: pip install -r requirements.txt
+
+      - name: 通知スクリプトを実行
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: python notify.py
