@@ -160,6 +160,9 @@ def fetch_recent_posts(
     except instaloader.exceptions.PrivateProfileNotFollowedException:
         logger.error("プロフィール '%s' は非公開です。", username)
         sys.exit(1)
+    except instaloader.exceptions.TooManyRequestsException:
+        logger.error("[%s] Instagram のレートリミット (429) に達しました。次回の実行でリトライします。", username)
+        return []
     except instaloader.exceptions.ConnectionException as e:
         logger.error("Instagram への接続に失敗しました: %s", e)
         return []
