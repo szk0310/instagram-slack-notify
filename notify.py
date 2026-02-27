@@ -114,17 +114,19 @@ def _build_loader(ig_username: Optional[str], ig_password: Optional[str]) -> ins
     # CI 環境ではリトライを無効化（429/401 時の長時間スリープを防ぐ）
     if os.environ.get("CI"):
         loader.context.max_connection_attempts = 1
-    if not ig_username or not ig_password:
-        logger.warning("INSTAGRAM_USERNAME/PASSWORD が未設定です。匿名アクセスを試みます。")
-        return loader
 
+    # セッションファイルがあれば優先して使用（認証情報の有無に関わらず）
     if SESSION_FILE.exists():
         try:
-            loader.load_session_from_file(ig_username, str(SESSION_FILE))
+            loader.load_session_from_file(ig_username or "", str(SESSION_FILE))
             logger.info("Instagram セッションをファイルから読み込みました。")
             return loader
         except Exception as e:
             logger.warning("セッションファイルの読み込みに失敗しました (%s)。", e)
+
+    if not ig_username or not ig_password:
+        logger.warning("INSTAGRAM_USERNAME/PASSWORD が未設定です。匿名アクセスを試みます。")
+        return loader
 
     # CI 環境ではログインを試みない（セキュリティチャレンジでハングするため）
     if os.environ.get("CI"):
