@@ -121,7 +121,12 @@ def _build_loader(ig_username: Optional[str], ig_password: Optional[str]) -> ins
             logger.info("Instagram セッションをファイルから読み込みました。")
             return loader
         except Exception as e:
-            logger.warning("セッションファイルの読み込みに失敗しました (%s)。再ログインします。", e)
+            logger.warning("セッションファイルの読み込みに失敗しました (%s)。", e)
+
+    # CI 環境ではログインを試みない（セキュリティチャレンジでハングするため）
+    if os.environ.get("CI"):
+        logger.warning("CI 環境のため Instagram ログインをスキップします。匿名アクセスを試みます。")
+        return loader
 
     try:
         loader.login(ig_username, ig_password)

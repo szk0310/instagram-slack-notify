@@ -30,6 +30,10 @@ jobs:
       - name: 依存パッケージをインストール
         run: pip install -r requirements.txt
 
+      - name: Instagram セッションを復元
+        if: ${{ secrets.INSTAGRAM_SESSION != '' }}
+        run: echo "${{ secrets.INSTAGRAM_SESSION }}" | base64 -d > .instagram_session
+
       - name: 通知スクリプトを実行
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
