@@ -31,8 +31,15 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Instagram セッションを復元
-        if: ${{ secrets.INSTAGRAM_SESSION != '' }}
-        run: echo "${{ secrets.INSTAGRAM_SESSION }}" | base64 -d > .instagram_session
+        env:
+          INSTAGRAM_SESSION: ${{ secrets.INSTAGRAM_SESSION }}
+        run: |
+          if [ -n "$INSTAGRAM_SESSION" ]; then
+            echo "$INSTAGRAM_SESSION" | base64 -d > .instagram_session
+            echo "セッションファイルを復元しました"
+          else
+            echo "INSTAGRAM_SESSION が未設定のためスキップします"
+          fi
 
       - name: 通知スクリプトを実行
         env:
