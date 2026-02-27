@@ -111,6 +111,9 @@ def _build_loader(ig_username: Optional[str], ig_password: Optional[str]) -> ins
         compress_json=False,
         quiet=True,
     )
+    # CI 環境ではリトライを無効化（429/401 時の長時間スリープを防ぐ）
+    if os.environ.get("CI"):
+        loader.context.max_connection_attempts = 1
     if not ig_username or not ig_password:
         logger.warning("INSTAGRAM_USERNAME/PASSWORD が未設定です。匿名アクセスを試みます。")
         return loader
