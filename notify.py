@@ -93,8 +93,14 @@ def seen_key(username: str, shortcode: str) -> str:
 
 # ── Instagram 取得 ────────────────────────────────────────────────────────────
 
-def fetch_recent_posts(username: str, count: int = FETCH_COUNT) -> list[instaloader.Post]:
-    """instaloader で公開プロフィールの最新投稿を取得する。"""
+SESSION_FILE = Path(__file__).parent / ".instagram_session"
+
+
+def _build_loader(ig_username: Optional[str], ig_password: Optional[str]) -> instaloader.Instaloader:
+    """認証済み instaloader インスタンスを返す。
+    セッションファイルがあれば再利用し、なければログインして保存する。
+    認証情報が未設定の場合は匿名アクセスを試みる。
+    """
     loader = instaloader.Instaloader(
         download_pictures=False,
         download_videos=False,
@@ -105,6 +111,42 @@ def fetch_recent_posts(username: str, count: int = FETCH_COUNT) -> list[instaloa
         compress_json=False,
         quiet=True,
     )
+    if not ig_username or not ig_password:
+        logger.warning("INSTAGRAM_USERNAME/PASSWORD が未設定です。匿名アクセスを試みます。")
+        return loader
+
+    if SESSION_FILE.exists():
+        try:
+            loader.load_session_from_file(ig_username, str(SESSION_FILE))
+            logger.info("Instagram セッションをファイルから読み込みました。")
+            return loader
+        except Exception as e:
+            logger.warning("セッションファイルの読み込みに失敗しました (%s)。再ログインします。", e)
+
+    try:
+        loader.login(ig_username, ig_password)
+        loader.save_session_to_file(str(SESSION_FILE))
+        logger.info("Instagram にログインし、セッションを保存しました。")
+    except instaloader.exceptions.BadCredentialsException:
+        logger.error("Instagram のログインに失敗しました。認証情報を確認してください。")
+        sys.exit(1)
+    except instaloader.exceptions.TwoFactorAuthRequiredException:
+        logger.error("Instagram の二段階認証が必要です。事前に instaloader でセッションを作成してください。")
+        sys.exit(1)
+    except instaloader.exceptions.ConnectionException as e:
+        logger.error("Instagram ログイン中に接続エラーが発生しました: %s", e)
+        sys.exit(1)
+    return loader
+
+
+def fetch_recent_posts(
+    username: str,
+    count: int = FETCH_COUNT,
+    ig_username: Optional[str] = None,
+    ig_password: Optional[str] = None,
+) -> list[instaloader.Post]:
+    """instaloader で公開プロフィールの最新投稿を取得する。"""
+    loader = _build_loader(ig_username, ig_password)
     try:
         profile = instaloader.Profile.from_username(loader.context, username)
     except instaloader.exceptions.ProfileNotExistsException:
@@ -115,7 +157,7 @@ def fetch_recent_posts(username: str, count: int = FETCH_COUNT) -> list[instaloa
         sys.exit(1)
     except instaloader.exceptions.ConnectionException as e:
         logger.error("Instagram への接続に失敗しました: %s", e)
-        sys.exit(1)
+        return []
 
     posts: list[instaloader.Post] = []
     try:
@@ -128,7 +170,6 @@ def fetch_recent_posts(username: str, count: int = FETCH_COUNT) -> list[instaloa
                 break
     except instaloader.exceptions.TooManyRequestsException:
         logger.error("Instagram のレートリミットに達しました。次回の実行でリトライします。")
-        sys.exit(1)
 
     return posts
 
@@ -291,9 +332,12 @@ def main() -> None:
         logger.error("SLACK_BOT_TOKEN が設定されていません。")
         sys.exit(1)
 
+    ig_username = os.environ.get("INSTAGRAM_USERNAME", "")
+    ig_password = os.environ.get("INSTAGRAM_PASSWORD", "")
+
     for profile in PROFILES:
         logger.info("[%s] 最新 %d 件を取得します。", profile.username, FETCH_COUNT)
-        posts = fetch_recent_posts(profile.username, FETCH_COUNT)
+        posts = fetch_recent_posts(profile.username, FETCH_COUNT, ig_username, ig_password)
         logger.info("[%s] %d 件の投稿を取得しました。", profile.username, len(posts))
 
         if args.bootstrap:

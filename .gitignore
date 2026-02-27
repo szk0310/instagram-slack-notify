@@ -1,4 +1,5 @@
 .env
+.instagram_session
 seen_posts.json
 notify.log
 notify.error.log
