@@ -8,7 +8,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/bin/python3</string>
-        <string>/Users/shiro/instagram-slack-notify/notify.py</string>
+        <string>/Users/szk/Desktop/APP/instagram-slack-notify/notify.py</string>
     </array>
     <!-- 毎時0分に実行 -->
     <key>StartCalendarInterval</key>
@@ -16,10 +16,10 @@
         <dict><key>Minute</key><integer>0</integer></dict>
     </array>
     <key>StandardOutPath</key>
-    <string>/Users/shiro/instagram-slack-notify/notify.log</string>
+    <string>/Users/szk/Desktop/APP/instagram-slack-notify/notify.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/shiro/instagram-slack-notify/notify.error.log</string>
+    <string>/Users/szk/Desktop/APP/instagram-slack-notify/notify.error.log</string>
     <key>WorkingDirectory</key>
-    <string>/Users/shiro/instagram-slack-notify</string>
+    <string>/Users/szk/Desktop/APP/instagram-slack-notify</string>
 </dict>
 </plist>
