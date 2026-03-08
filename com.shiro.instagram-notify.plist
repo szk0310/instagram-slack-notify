@@ -7,7 +7,7 @@
     <string>com.shiro.instagram-notify</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
+        <string>/Library/Frameworks/Python.framework/Versions/3.14/bin/python3</string>
         <string>/Users/szk/Desktop/APP/instagram-slack-notify/notify.py</string>
     </array>
     <!-- 毎時0分に実行 -->
