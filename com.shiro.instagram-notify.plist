@@ -10,10 +10,12 @@
         <string>/Library/Frameworks/Python.framework/Versions/3.14/bin/python3</string>
         <string>/Users/szk/Desktop/APP/instagram-slack-notify/notify.py</string>
     </array>
-    <!-- 毎時0分に実行 -->
+    <!-- 1日3回: 8:00, 14:00, 20:00 -->
     <key>StartCalendarInterval</key>
     <array>
-        <dict><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>14</integer><key>Minute</key><integer>0</integer></dict>
+        <dict><key>Hour</key><integer>20</integer><key>Minute</key><integer>0</integer></dict>
     </array>
     <key>StandardOutPath</key>
     <string>/Users/szk/Desktop/APP/instagram-slack-notify/notify.log</string>

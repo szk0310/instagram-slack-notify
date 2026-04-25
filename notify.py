@@ -154,23 +154,25 @@ def fetch_recent_posts(
     count: int = FETCH_COUNT,
     ig_username: Optional[str] = None,
     ig_password: Optional[str] = None,
-) -> list[instaloader.Post]:
-    """instaloader で公開プロフィールの最新投稿を取得する。"""
+) -> Optional[list[instaloader.Post]]:
+    """instaloader で公開プロフィールの最新投稿を取得する。
+    エラー時は None、正常時（投稿なし含む）はリストを返す。
+    """
     loader = _build_loader(ig_username, ig_password)
     try:
         profile = instaloader.Profile.from_username(loader.context, username)
     except instaloader.exceptions.ProfileNotExistsException:
-        logger.error("プロフィール '%s' が見つかりません。", username)
-        sys.exit(1)
+        logger.error("プロフィール '%s' が見つかりません（一時的なブロックの可能性あり）。", username)
+        return None
     except instaloader.exceptions.PrivateProfileNotFollowedException:
         logger.error("プロフィール '%s' は非公開です。", username)
-        sys.exit(1)
+        return None
     except instaloader.exceptions.TooManyRequestsException:
         logger.error("[%s] Instagram のレートリミット (429) に達しました。次回の実行でリトライします。", username)
-        return []
+        return None
     except instaloader.exceptions.ConnectionException as e:
         logger.error("Instagram への接続に失敗しました: %s", e)
-        return []
+        return None
 
     posts: list[instaloader.Post] = []
     try:
@@ -183,6 +185,10 @@ def fetch_recent_posts(
                 break
     except instaloader.exceptions.TooManyRequestsException:
         logger.error("Instagram のレートリミットに達しました。次回の実行でリトライします。")
+        return None
+    except instaloader.exceptions.ConnectionException as e:
+        logger.error("[%s] 投稿取得中に接続エラーが発生しました: %s", username, e)
+        return None
 
     return posts
 
@@ -351,6 +357,15 @@ def main() -> None:
     for profile in PROFILES:
         logger.info("[%s] 最新 %d 件を取得します。", profile.username, FETCH_COUNT)
         posts = fetch_recent_posts(profile.username, FETCH_COUNT, ig_username, ig_password)
+
+        if posts is None:
+            msg = f":warning: *Instagram フェッチ失敗 - {profile.display_name}*\nログを確認してください（セッション切れ・レートリミット・checkpoint_required の可能性）。"
+            try:
+                send_slack_notification(msg, slack_token)
+            except SlackApiError:
+                pass
+            continue
+
         logger.info("[%s] %d 件の投稿を取得しました。", profile.username, len(posts))
 
         if args.bootstrap:
