@@ -173,6 +173,9 @@ def fetch_recent_posts(
     except instaloader.exceptions.ConnectionException as e:
         logger.error("Instagram への接続に失敗しました: %s", e)
         return None
+    except Exception as e:
+        logger.error("[%s] 予期しないエラーが発生しました: %s", username, e)
+        return None
 
     posts: list[instaloader.Post] = []
     try:
