@@ -192,6 +192,9 @@ def fetch_recent_posts(
     except instaloader.exceptions.ConnectionException as e:
         logger.error("[%s] 投稿取得中に接続エラーが発生しました: %s", username, e)
         return None
+    except Exception as e:
+        logger.error("[%s] 投稿取得中に予期しないエラーが発生しました: %s", username, e)
+        return None
 
     return posts
 
